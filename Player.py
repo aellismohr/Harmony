@@ -185,6 +185,7 @@ LIVELIHOOD_TRAITS = {
     "Warrior (Juggernaut)": "Maximizes Raw Strength & Durability.",
     "Warrior (Tactician)": "Increases Combat Awareness & Strategic Movement, allowing for superior positioning in battle.",
     "Warrior (Swiftfoot)": "Enhances Speed & Agility, making the character excel in movement-based challenges.",
+    "Warrior (Sharpshooter)": "Increases Technique & Perception, concentrated on ranged combat.",
     "Warrior (Mystic Blade)": "Increases Essence Manipulation & Arcane Knowledge, allowing for the use of magical abilities and enchanted items."
 }
 # Travel Traits (Choose 1)
