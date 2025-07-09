@@ -38,8 +38,8 @@ SLIDER_VALUES = [
 
 ABILITY_CATEGORIES = { 
     "Essence-Based": ESSENCE_ABILITIES,
-    "Physical": ["Strength", "Speed", "Agility", "Reflexes", "Resilience", "Recovery", "Technique"],
-    "Mental": ["Willpower", "Perception", "Stealth", "Strategy"],
+    "Physical": ["Strength", "Speed", "Agility", "Reflexes", "Resilience", "Recovery"],
+    "Mental": ["Willpower", "Perception", "Stealth", "Technique", "Strategy"],
     "Social": ["Persuasion", "Diplomacy", "Deception", "Intimidation"],
     "Livelihood": ["Medicine", "Brewing", "Crafting", "Smithing", "Construction", "Foraging", "Farming", "Hunting", "Fishing", "Tracking", "Thieving", "Trade"],
     "Travel": ["Navigation", "Taming", "Portaling"]
