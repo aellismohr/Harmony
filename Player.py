@@ -242,7 +242,7 @@ TRAIT_MODIFIERS = {
         },
         "Skillsets": {
             "Adrenaline Surge": "Triggers when cornered or low in health, boosting combat prowess temporarily.",
-            "Wilderness Fortitude": "Mitigates environmental and other sustained damage while increasing skills outside of combat when affected by sustained damage (e.g., improved alchemy when poisoned, improved resource gathering when hungry, increased physical attributes when fatigued).",
+            "Wilderness Fortitude": "Mitigates environmental and other sustained damage while increasing skills outside of combat when affected by sustained damage (e.g., improved alchemy when poisoned, improved resource gathering when hungry, reduced physical deficits when fatigued).",
             "Brace": "A strong defensive posture or block reducing incoming damage.",
             "Survivalist's Bond": "Able to channel Essence with Ambrosia Sap weaponry and armor (excluding bows)."
         }
@@ -595,7 +595,7 @@ TRAIT_MODIFIERS = {
         },
         "Skillsets": {
             "Adrenaline Surge": "Triggers when cornered or low in health, boosting combat prowess temporarily.",
-            "Wilderness Fortitude": "Mitigates environmental and other sustained damage while increasing skills outside of combat when affected by sustained damage (e.g., improved alchemy when poisoned, improved resource gathering when hungry, increased physical attributes when fatigued).",
+            "Wilderness Fortitude": "Mitigates environmental and other sustained damage while increasing skills outside of combat when affected by sustained damage (e.g., improved alchemy when poisoned, improved resource gathering when hungry, reduced physical deficits when fatigued).",
             "Brace": "A strong defensive posture or block reducing incoming damage.",
             "Survivalist's Bond": "Able to wield Ambrosia Sap weaponry and armor."
         }
