@@ -3458,7 +3458,12 @@ class CharacterCreationUI:
                 if slider_data:
                     # Visual representation of sliders using Streamlit's native slider
                     for item in slider_data:
-                        st.write(f"**{item['Slider']}**")
+                        if item['Slider'] == "Inverse Metabolic Rate":
+                            st.write("Hunger Resistance")
+                        elif item['Slider'] == "Inverse Sleep Cycle":
+                            st.write("Sleep Resistance")
+                        else:
+                            st.write(f"**{item['Slider']}**")
                         st.progress(item["Current"], text = f"{item['Current']}")
             
             # SKILLSETS SECTION
