@@ -3317,6 +3317,18 @@ class CharacterCreationUI:
             return
         
         player = st.session_state.player
+
+        # MANAGEMENT PANEL -----------------------------------------------------------
+        with st.expander("Admin / XP Management", expanded=False):
+            # Choose a skillset
+            selectable = {s.name: s for s in player.skillsets}
+            sk_name = st.selectbox("Select skillset", list(selectable.keys()))
+            delta   = st.number_input("XP to add (±)", step=100, value=0)
+
+            if st.button("Apply XP", key="xp_btn") and delta != 0:
+                selectable[sk_name].increment_xp(delta)
+                st.success(f"Added {delta:+} XP to {sk_name}. "
+                        f"Level is now {selectable[sk_name].level}.")
         
         # Create a container with a border
         with st.container():
@@ -3530,6 +3542,39 @@ class CharacterCreationUI:
                     file_name=f"Harmony_{save['Name']}.json",
                     mime="application/json",
                 )
+
+    def _load_character_from_json(self, buffer: io.BytesIO) -> bool:
+        """Parse a save-file and push its fields into session_state."""
+        try:
+            data = json.load(buffer)
+
+            # --- Simple scalar fields --------------------------------------------------
+            st.session_state.character_name  = data["Name"]
+            st.session_state.player_planet   = data["Genetics"]["Planet Markers"][0].title()  # e.g. 'Synvios'
+            st.session_state.mother_planet   = data["Genetics"]["Mother Markers"][0].title()
+            st.session_state.father_planet   = data["Genetics"]["Father Markers"][0].title()
+
+            st.session_state.birth_year      = data["Birthdate"]["Year"]
+            st.session_state.birth_month     = data["Birthdate"]["Month"]
+
+            st.session_state.height          = data["Size"]["Height"]
+            st.session_state.weight          = data["Size"]["Weight"]
+            st.session_state.eye_color       = data["Eye Color"]
+
+            # --- Trait fields ----------------------------------------------------------
+            st.session_state.physical_trait  = data["Physical Trait"]
+            st.session_state.mental_trait    = data["Mental Trait"]
+            st.session_state.social_trait    = data["Social Trait"]
+            st.session_state.livelihood_trait= data["Livelihood Trait"]
+            st.session_state.travel_trait    = data["Travel Trait"]
+            st.session_state.essence_traits  = data["Essence Traits"] + [""]*(4-len(data["Essence Traits"]))
+
+            # --- Regenerate the Player object -----------------------------------------
+            self.create_character()          # reuses the existing builder
+            return True
+        except Exception as e:
+            st.error(f"Could not load file: {e}")
+            return False
 
     def display(self):
         """Display the UI using Streamlit"""
@@ -3758,7 +3803,14 @@ class CharacterCreationUI:
                     st.write(f"**{trait}:** {self.flat_essence_traits[trait]}")
                     
         with tab3:
-            st.header("Create Your Character")
+            st.header("Create or Load a Character")
+
+            upload = st.file_uploader("Load existing save-file (JSON)", type="json")
+            if upload is not None:
+                if self._load_character_from_json(upload):
+                    st.success("Character loaded successfully!")
+                    st.rerun()
+            st.divider()
             
             col1, col2 = st.columns(2)
             with col1:
@@ -3786,6 +3838,7 @@ class CharacterCreationUI:
                     except Exception as e:
                         st.error(f"Error displaying player card: {str(e)}")
                         st.exception(e)
+                        
             else:
                 st.info("Create a character to see results here.")
 
