@@ -3547,6 +3547,7 @@ class CharacterCreationUI:
         """Parse a save-file and push its fields into session_state."""
         try:
             data = json.load(buffer)
+            st.write("**DEBUG – raw genetics block:**", data.get("Genetics"))
 
             # --- Simple scalar fields --------------------------------------------------
             st.session_state.character_name  = data["Name"]
