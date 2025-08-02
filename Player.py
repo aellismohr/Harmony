@@ -2861,6 +2861,32 @@ class CharacterCreationUI:
                 'M': "Metamorphosis",
             }
             return essence_map[marker.upper()]
+    
+    def _markers_to_planet(self, markers) -> str | None:
+        """
+        Convert a list/str of essence markers (e.g. ['B','b','e'] or 'Bbe')
+        into the corresponding planet name.
+
+        Returns None if it cannot decide.
+        """
+        # Accept both list and string inputs
+        if isinstance(markers, str):
+            markers = list(markers)
+
+        if not markers:
+            return None
+
+        # Prefer the first uppercase letter; fall back to the first char
+        marker = next((ch for ch in markers if ch.isupper()), markers[0]).upper()
+
+        return {
+            'B': "Synvios",       # Symbiosis
+            'D': "Fortis Crags",  # Durabilis
+            'E': "Percepio",      # Equilibrio
+            'I': "Celeste",       # Sapien
+            'A': "Nexus",         # Arcanum
+            'M': "Variare",       # Metamorphosis
+        }.get(marker)
 
     def _marker_to_colour(self, marker:str)->str:
             """Colour table used by the eye-colour question (#5)."""
@@ -3547,13 +3573,27 @@ class CharacterCreationUI:
         """Parse a save-file and push its fields into session_state."""
         try:
             data = json.load(buffer)
-            st.write("**DEBUG – raw genetics block:**", data.get("Genetics"))
 
             # --- Simple scalar fields --------------------------------------------------
             st.session_state.character_name  = data["Name"]
-            st.session_state.player_planet   = data["Genetics"]["Planet Markers"][0].title()  # e.g. 'Synvios'
-            st.session_state.mother_planet   = data["Genetics"]["Mother Markers"][0].title()
-            st.session_state.father_planet   = data["Genetics"]["Father Markers"][0].title()
+            # ------------------ Birth-planet selectors ------------------------
+            st.session_state.player_planet = (
+                data.get("Player Planet")                                  # new saves
+                or self._markers_to_planet(data["Genetics"]["Planet Markers"])
+                or "Synvios"
+            )
+
+            st.session_state.mother_planet = (
+                data.get("Mother Planet")
+                or self._markers_to_planet(data["Genetics"]["Mother Markers"])
+                or "Synvios"
+            )
+
+            st.session_state.father_planet = (
+                data.get("Father Planet")
+                or self._markers_to_planet(data["Genetics"]["Father Markers"])
+                or "Synvios"
+            )
 
             st.session_state.birth_year      = data["Birthdate"]["Year"]
             st.session_state.birth_month     = data["Birthdate"]["Month"]
