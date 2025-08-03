@@ -3613,25 +3613,6 @@ class CharacterCreationUI:
 
             # --- Regenerate the Player object -----------------------------------------
             self.create_character()          # reuses the existing builder
-
-            # Restore skill-set progress
-            xp_table = data.get("SkillXP", {})
-            player   = st.session_state.player              # freshly rebuilt
-
-            name_to_skill = {s.name: s for s in player.skillsets}
-
-            for skill_name, saved_xp in xp_table.items():
-                skill = name_to_skill.get(skill_name)
-                if skill is None:
-                    st.warning(f"Obsolete or renamed skill-set '{skill_name}' "
-                            f"found in save – ignored.")
-                    continue
-                delta = saved_xp - skill.xp                 # bring to exact XP
-                if delta:
-                    skill.increment_xp(delta)
-            # ------------------------------------------------------------------
-
-            st.session_state.character_created = True
             return True
         except Exception as e:
             st.error(f"Could not load file: {e}")
@@ -3866,40 +3847,27 @@ class CharacterCreationUI:
         with tab3:
             st.header("Create or Load a Character")
 
-            # ---------- 1. Upload & load exactly once --------------------------------
-            upload = st.file_uploader(
-                "Load existing save-file (JSON)",
-                type="json",
-                key="save_uploader"          # keeps widget stable on rerender
-            )
-
-            # First time we see this particular file → load it
-            if upload is not None and st.session_state.get("_loaded_file") != upload.name:
+            upload = st.file_uploader("Load existing save-file (JSON)", type="json")
+            if upload is not None:
                 if self._load_character_from_json(upload):
                     st.success("Character loaded successfully!")
-                    st.session_state._loaded_file = upload.name   # remember ✔
-
-            # If the user clears the widget, forget the remembered file
-            if upload is None and "_loaded_file" in st.session_state:
-                del st.session_state._loaded_file
-
+                    st.rerun()
             st.divider()
-
-            # ---------- 2. Create buttons -------------------------------------------
+            
             col1, col2 = st.columns(2)
-
             with col1:
                 if st.button("Create Custom Character", use_container_width=True):
                     if self.create_character():
                         st.success("Character created successfully!")
-                        st.session_state.character_created = True   # Results tab will pick it up
-
+                        # TODO: Switch to the Results tab automatically
+                        st.session_state.character_created = True
+                        st.rerun()
+            
             with col2:
                 if st.button("Create Random Character (Will Clear Selections)", use_container_width=True):
                     self.randomize_selections()
                     self.create_character()
-                    st.success("Random character created!")
-                    st.session_state.character_created = True
+                    st.rerun()
 
         with tab4:  # This is the "Results" tab
             if st.session_state.character_created:
