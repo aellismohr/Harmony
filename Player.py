@@ -3319,6 +3319,7 @@ class CharacterCreationUI:
                         "Size": size,
                         "Birthdate": birthdate,
                         "Eye Color": eye_color,
+                        "SkillXP": {s.name: s.xp for s in player.skillsets}
                     }
                     st.session_state["current_save_data"] = save
                     st.session_state.character_created = True
@@ -3612,6 +3613,26 @@ class CharacterCreationUI:
 
             # --- Regenerate the Player object -----------------------------------------
             self.create_character()          # reuses the existing builder
+
+            # Restore skill-set progress
+            xp_table = data.get("SkillXP", {})
+            player   = st.session_state.player              # freshly rebuilt
+
+            name_to_skill = {s.name: s for s in player.skillsets}
+
+            for skill_name, saved_xp in xp_table.items():
+                skill = name_to_skill.get(skill_name)
+                if skill is None:
+                    st.warning(f"Obsolete or renamed skill-set '{skill_name}' "
+                            f"found in save – ignored.")
+                    continue
+                delta = saved_xp - skill.xp                 # bring to exact XP
+                if delta:
+                    skill.increment_xp(delta)
+            # ------------------------------------------------------------------
+
+            st.session_state.character_created = True
+            st.experimental_rerun()
             return True
         except Exception as e:
             st.error(f"Could not load file: {e}")
