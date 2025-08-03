@@ -3632,7 +3632,6 @@ class CharacterCreationUI:
             # ------------------------------------------------------------------
 
             st.session_state.character_created = True
-            st.experimental_rerun()
             return True
         except Exception as e:
             st.error(f"Could not load file: {e}")
