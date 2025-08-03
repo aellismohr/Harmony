@@ -3319,7 +3319,6 @@ class CharacterCreationUI:
                         "Size": size,
                         "Birthdate": birthdate,
                         "Eye Color": eye_color,
-                        "SkillXP": {s.name: s.xp for s in player.skillsets}
                     }
                     st.session_state["current_save_data"] = save
                     st.session_state.character_created = True
