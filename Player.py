@@ -3863,43 +3863,67 @@ class CharacterCreationUI:
                 if trait and trait in self.flat_essence_traits:
                     st.write(f"**{trait}:** {self.flat_essence_traits[trait]}")
                     
-        with tab3:
+        with tab3:   # -------------  “Create or Load a Character” ------------
             st.header("Create or Load a Character")
 
-            # ---------- 1. Upload & load exactly once --------------------------------
+            # ─── 1.  File-uploader  ──────────────────────────────────────────────
             upload = st.file_uploader(
                 "Load existing save-file (JSON)",
                 type="json",
-                key="save_uploader"          # keeps widget stable on rerender
+                key="save_uploader"             # keeps widget from resetting on rerun
             )
 
-            # First time we see this particular file → load it
+            # Load the file only the first time we see its name
             if upload is not None and st.session_state.get("_loaded_file") != upload.name:
-                if self._load_character_from_json(upload):
-                    st.success("Character loaded successfully!")
-                    st.session_state._loaded_file = upload.name   # remember ✔
+                try:
+                    ok = self._load_character_from_json(upload)
+                except Exception as e:
+                    st.error("⚠️  _load_character_from_json crashed:")
+                    st.exception(e)              # full traceback in the UI
+                    ok = False
 
-            # If the user clears the widget, forget the remembered file
+                if ok:
+                    st.success("Character loaded successfully!")
+                    st.session_state._loaded_file = upload.name     # remember ✔
+
+            # If user clears the uploader, forget the remembered file
             if upload is None and "_loaded_file" in st.session_state:
                 del st.session_state._loaded_file
 
             st.divider()
 
-            # ---------- 2. Create buttons -------------------------------------------
+            # ─── 2.  Create buttons ─────────────────────────────────────────────
             col1, col2 = st.columns(2)
 
+            # ----- Custom create ------------------------------------------------
             with col1:
                 if st.button("Create Custom Character", use_container_width=True):
-                    if self.create_character():
-                        st.success("Character created successfully!")
-                        st.session_state.character_created = True   # Results tab will pick it up
+                    try:
+                        ok = self.create_character()
+                    except Exception as e:
+                        st.error("⚠️  create_character crashed:")
+                        st.exception(e)
+                        ok = False
 
+                    if ok:
+                        st.success("Character created successfully!")
+                        st.session_state.character_created = True
+
+            # ----- Random create ------------------------------------------------
             with col2:
-                if st.button("Create Random Character (Will Clear Selections)", use_container_width=True):
+                if st.button("Create Random Character (Clears selections)",
+                            use_container_width=True):
                     self.randomize_selections()
-                    self.create_character()
-                    st.success("Random character created!")
-                    st.session_state.character_created = True
+                    try:
+                        ok = self.create_character()
+                    except Exception as e:
+                        st.error("⚠️  create_character crashed (random):")
+                        st.exception(e)
+                        ok = False
+
+                    if ok:
+                        st.success("Random character created!")
+                        st.session_state.character_created = True
 
         with tab4:  # This is the "Results" tab
             if st.session_state.character_created:
