@@ -3850,7 +3850,6 @@ class CharacterCreationUI:
             if upload is not None:
                 if self._load_character_from_json(upload):
                     st.success("Character loaded successfully!")
-                    st.rerun()
             st.divider()
             
             col1, col2 = st.columns(2)
