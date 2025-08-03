@@ -3867,21 +3867,11 @@ class CharacterCreationUI:
             st.header("Create or Load a Character")
 
             # tab3  –  Create / Load
-            upload = st.file_uploader("Load existing save-file (JSON)",
-                                    type="json",
-                                    key="save_uploader")
-
-            if upload is not None and not st.session_state.get("save_loaded"):
-                # first (and only) time we see this file
+            if upload is not None:
                 if self._load_character_from_json(upload):
                     st.success("Character loaded successfully!")
-                    st.session_state.save_loaded = True      # ← arm the guard
-                    tab4.select()                            # jump to Results (optional)
-
-            # If the user clears the widget, reset the guard so a new file can be loaded
-            if upload is None and st.session_state.get("save_loaded"):
-                st.session_state.save_loaded = False
-            
+                    st.session_state["save_uploader"] = None   # resets widget
+                        
             col1, col2 = st.columns(2)
             with col1:
                 if st.button("Create Custom Character", use_container_width=True):
