@@ -3863,83 +3863,56 @@ class CharacterCreationUI:
                 if trait and trait in self.flat_essence_traits:
                     st.write(f"**{trait}:** {self.flat_essence_traits[trait]}")
                     
-        with tab3:  # ──────────────────────────────────────────────────────────────
+        with tab3:  # ────────────────────────────────────────────────────────────
             st.header("Create or Load a Character")
 
-            # ── 0. Debug window ───────────────────────────────────────────────────
-            def _dbg(txt: str):
-                # also print to server console so you’ll see it in `streamlit run …`
-                print(txt, flush=True)
-                st.session_state.setdefault("_dbg", []).append(txt)
-
-            with st.expander("🐞 Debug log", expanded=True):
-                for line in st.session_state.get("_dbg", []):
-                    st.text(line)
-
-            # ── 1. File uploader – load exactly once per file ─────────────────────
+            # ── 1.  File-uploader  (loads only the first time per file) ──────────
             upload = st.file_uploader(
                 "Load existing save-file (JSON)",
                 type="json",
-                key="save_uploader",
+                key="save_uploader"       # keeps the widget stable on rerender
             )
 
-            if upload is not None and st.session_state.get("_loaded_file") != upload.name:
-                try:
-                    ok = self._load_character_from_json(upload)
-                except Exception as e:
-                    import traceback, textwrap
-                    tb = textwrap.indent("".join(traceback.format_exception(e)), "  ")
-                    _dbg("LOAD ERROR:\n" + tb)
-                    st.error("⛔ Could not load character – see Debug log.")
-                    ok = False
+            if upload is not None:
+                # Load once per unique filename
+                if st.session_state.get("_loaded_file") != upload.name:
+                    if self._load_character_from_json(upload):
+                        st.success("Character loaded successfully!")
+                        st.session_state._loaded_file = upload.name   # remember
+                        st.session_state.jump_to_results = True       # show Results
 
-                if ok:
-                    st.success("Character loaded successfully!")
-                    st.session_state._loaded_file = upload.name
-                    st.session_state._show_results = True        # jump flag
-
-            # If the user clears the uploader, forget the remembered file
+            # If user clears the uploader, forget the remembered file
             if upload is None and "_loaded_file" in st.session_state:
                 del st.session_state._loaded_file
 
             st.divider()
 
-            # ── 2. Create / Random buttons ────────────────────────────────────────
+            # ── 2.  Create / Random buttons  ────────────────────────────────────
             col1, col2 = st.columns(2)
-
-            def _do_create(randomise: bool = False):
-                if randomise:
-                    self.randomize_selections()
-                try:
-                    ok = self.create_character()
-                except Exception as e:
-                    import traceback, textwrap
-                    tb = textwrap.indent("".join(traceback.format_exception(e)), "  ")
-                    label = "RANDOM CREATE" if randomise else "CREATE"
-                    _dbg(f"{label} ERROR:\n" + tb)
-                    st.error(f"⛔ {label} failed – see Debug log.")
-                    return
-                st.success("Character created successfully!")
-                st.session_state.character_created = True
-                st.session_state._show_results = True            # jump flag
 
             with col1:
                 if st.button("Create Custom Character", use_container_width=True):
-                    _do_create(randomise=False)
+                    if self.create_character():
+                        st.success("Character created successfully!")
+                        st.session_state.character_created = True
+                        st.session_state.jump_to_results = True
 
             with col2:
                 if st.button("Create Random Character (Clears selections)",
                             use_container_width=True):
-                    _do_create(randomise=True)
+                    self.randomize_selections()
+                    if self.create_character():
+                        st.success("Random character created!")
+                        st.session_state.character_created = True
+                        st.session_state.jump_to_results = True
 
-            # ── 3. After any successful op → switch to Results once ───────────────
-            if st.session_state.pop("_show_results", False):
-                # On the next render set the Results tab as active (Streamlit ≥1.34)
-                try:
+            # ── 3.  After any successful action → show the Results tab once ─────
+            if st.session_state.pop("jump_to_results", False):
+                try:               # Streamlit ≥ 1.34
                     tab4.select()
                 except AttributeError:
-                    # older Streamlit: simple rerun brings the Results pane into view
-                    st.experimental_rerun()
+                    st.experimental_rerun()   # older versions
+
 
         with tab4:  # This is the "Results" tab
             if st.session_state.character_created:
@@ -3955,6 +3928,8 @@ class CharacterCreationUI:
                         
             else:
                 st.info("Create a character to see results here.")
+
+
 
 # Main Streamlit app
 def main():
