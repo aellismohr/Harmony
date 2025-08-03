@@ -3863,53 +3863,66 @@ class CharacterCreationUI:
                 if trait and trait in self.flat_essence_traits:
                     st.write(f"**{trait}:** {self.flat_essence_traits[trait]}")
                     
-        with tab3:   # -------------  “Create or Load a Character” ------------
+        with tab3:   # ------------------------------------------------------------
             st.header("Create or Load a Character")
 
-            # ─── 1.  File-uploader  ──────────────────────────────────────────────
+            # ---------- 0.  Tiny debug helper & panel ----------------------------
+            def _push_debug(txt: str):
+                if "_debug_log" not in st.session_state:
+                    st.session_state._debug_log = []
+                st.session_state._debug_log.append(txt)
+
+            with st.expander("🐞 Debug log (click to open)", expanded=True):
+                for line in st.session_state.get("_debug_log", []):
+                    st.text(line)
+
+            # ---------- 1.  File-uploader (load once) ----------------------------
             upload = st.file_uploader(
                 "Load existing save-file (JSON)",
                 type="json",
-                key="save_uploader"             # keeps widget from resetting on rerun
+                key="save_uploader"         # keeps widget stable on rerender
             )
 
-            # Load the file only the first time we see its name
             if upload is not None and st.session_state.get("_loaded_file") != upload.name:
                 try:
                     ok = self._load_character_from_json(upload)
                 except Exception as e:
-                    st.error("⚠️  _load_character_from_json crashed:")
-                    st.exception(e)              # full traceback in the UI
+                    import traceback, textwrap
+                    tb = "".join(traceback.format_exception(e))
+                    _push_debug("LOAD ERROR:\n" + textwrap.indent(tb, "  "))
+                    st.error("⛔ Could not load character – see Debug log above.")
                     ok = False
 
                 if ok:
                     st.success("Character loaded successfully!")
-                    st.session_state._loaded_file = upload.name     # remember ✔
+                    st.session_state._loaded_file = upload.name   # remember file
 
-            # If user clears the uploader, forget the remembered file
+            # If the user clears the uploader, forget the remembered file
             if upload is None and "_loaded_file" in st.session_state:
                 del st.session_state._loaded_file
 
             st.divider()
 
-            # ─── 2.  Create buttons ─────────────────────────────────────────────
+            # ---------- 2.  Create buttons ---------------------------------------
             col1, col2 = st.columns(2)
 
-            # ----- Custom create ------------------------------------------------
+            # ----- Custom create -------------------------------------------------
             with col1:
                 if st.button("Create Custom Character", use_container_width=True):
                     try:
                         ok = self.create_character()
                     except Exception as e:
-                        st.error("⚠️  create_character crashed:")
-                        st.exception(e)
+                        import traceback, textwrap
+                        tb = "".join(traceback.format_exception(e))
+                        _push_debug("CREATE ERROR:\n" + textwrap.indent(tb, "  "))
+                        st.error("⛔ Creation failed – see Debug log above.")
                         ok = False
 
                     if ok:
                         st.success("Character created successfully!")
                         st.session_state.character_created = True
 
-            # ----- Random create ------------------------------------------------
+            # ----- Random create -------------------------------------------------
             with col2:
                 if st.button("Create Random Character (Clears selections)",
                             use_container_width=True):
@@ -3917,8 +3930,10 @@ class CharacterCreationUI:
                     try:
                         ok = self.create_character()
                     except Exception as e:
-                        st.error("⚠️  create_character crashed (random):")
-                        st.exception(e)
+                        import traceback, textwrap
+                        tb = "".join(traceback.format_exception(e))
+                        _push_debug("RANDOM CREATE ERROR:\n" + textwrap.indent(tb, "  "))
+                        st.error("⛔ Random creation failed – see Debug log above.")
                         ok = False
 
                     if ok:
